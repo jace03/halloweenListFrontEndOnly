@@ -1,32 +1,30 @@
-# React + TypeScript + Vite
+# Halloween Watchlist 🎃
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A just-for-fun, frontend-only React + TypeScript app for tracking mine and my wife's favourite Halloween movies.
 
-Currently, two official plugins are available:
+No backend — it's basic CRUD over a hardcoded seed list, persisted to `localStorage` in your browser.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- Add, edit, and delete movies
+- Track title, year, who picked it, a 🎃 rating (1-5), watched status, and notes
+- Filter by All / Unwatched / Watched
+- "Reset to starter list" to restore the seed data
+- Data is saved to `localStorage`, so your changes persist across reloads
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting started
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Then open the printed local URL in your browser.
+
+## Updating the list
+
+The starter list lives in [`src/data/seedMovies.ts`](src/data/seedMovies.ts). Edit it directly to change what a fresh (or reset) list starts with — it's just an array of `Movie` objects.
+
+## Tech
+
+Vite + React + TypeScript, no backend, no database.
