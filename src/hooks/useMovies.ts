@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { seedMovies } from '../data/seedMovies'
+import { fetchPosterUrl } from '../lib/tmdb'
 import type { Movie, MovieDraft, MovieRow } from '../types'
 
 function rowToMovie(row: MovieRow): Movie {
@@ -15,6 +16,7 @@ function rowToMovie(row: MovieRow): Movie {
     rank: row.rank,
     watched: row.watched,
     notes: row.notes,
+    posterUrl: row.poster_url,
     cast: (row.movie_actor ?? [])
       .map((link) => link.actors?.name)
       .filter((name): name is string => !!name)
@@ -48,7 +50,7 @@ export function useMovies() {
     const { data, error: fetchError } = await supabase
       .from('movies')
       .select(MOVIE_SELECT)
-      .order('rank', { ascending: false, nullsFirst: false })
+      .order('rank', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: true })
 
     if (fetchError) {
@@ -64,10 +66,42 @@ export function useMovies() {
     refresh()
   }, [refresh])
 
+  async function closeRankGap(currentMovies: Movie[], vacatedRank: number) {
+    const toShift = currentMovies.filter(
+      (m): m is Movie & { rank: number } => m.rank !== null && m.rank > vacatedRank,
+    )
+
+    if (toShift.length === 0) {
+      setError(null)
+      setMovies(currentMovies)
+      return
+    }
+
+    const shiftedRankById = new Map(toShift.map((m) => [m.id, m.rank - 1]))
+    setMovies(
+      currentMovies.map((m) =>
+        shiftedRankById.has(m.id) ? { ...m, rank: shiftedRankById.get(m.id)! } : m,
+      ),
+    )
+
+    const results = await Promise.all(
+      toShift.map((m) => supabase.from('movies').update({ rank: m.rank - 1 }).eq('id', m.id)),
+    )
+    const failed = results.find((r) => r.error)
+    if (failed?.error) {
+      const message = (failed.error as { message: string }).message
+      await refresh()
+      setError(message)
+      return
+    }
+    setError(null)
+  }
+
   async function addMovie(draft: MovieDraft) {
+    const posterUrl = await fetchPosterUrl(draft.title, draft.year)
     const { data, error: insertError } = await supabase
       .from('movies')
-      .insert(draftToRow(draft))
+      .insert({ ...draftToRow(draft), poster_url: posterUrl })
       .select(MOVIE_SELECT)
       .single()
 
@@ -80,9 +114,12 @@ export function useMovies() {
   }
 
   async function updateMovie(id: string, draft: MovieDraft) {
+    const previous = movies.find((m) => m.id === id)
+    const titleChanged = previous?.title !== draft.title || previous?.year !== draft.year
+    const posterUrl = titleChanged ? await fetchPosterUrl(draft.title, draft.year) : previous?.posterUrl
     const { data, error: updateError } = await supabase
       .from('movies')
-      .update(draftToRow(draft))
+      .update({ ...draftToRow(draft), poster_url: posterUrl })
       .eq('id', id)
       .select(MOVIE_SELECT)
       .single()
@@ -91,19 +128,37 @@ export function useMovies() {
       setError(updateError.message)
       return
     }
+
+    const updated = rowToMovie(data as MovieRow)
+    const nextMovies = movies.map((m) => (m.id === id ? updated : m))
+
+    if (previous?.rank != null && updated.rank === null) {
+      await closeRankGap(nextMovies, previous.rank)
+      return
+    }
+
     setError(null)
-    setMovies((prev) => prev.map((m) => (m.id === id ? rowToMovie(data as MovieRow) : m)))
+    setMovies(nextMovies)
   }
 
   async function deleteMovie(id: string) {
+    const target = movies.find((m) => m.id === id)
     const { error: deleteError } = await supabase.from('movies').delete().eq('id', id)
 
     if (deleteError) {
       setError(deleteError.message)
       return
     }
-    setError(null)
-    setMovies((prev) => prev.filter((m) => m.id !== id))
+
+    const remaining = movies.filter((m) => m.id !== id)
+
+    if (target?.rank == null) {
+      setError(null)
+      setMovies(remaining)
+      return
+    }
+
+    await closeRankGap(remaining, target.rank)
   }
 
   async function toggleWatched(id: string) {
@@ -125,6 +180,27 @@ export function useMovies() {
     setMovies((prev) => prev.map((m) => (m.id === id ? rowToMovie(data as MovieRow) : m)))
   }
 
+  async function reorderMovies(orderedIds: string[]) {
+    const previous = movies
+    const rankById = new Map(orderedIds.map((id, index) => [id, index + 1]))
+    const reordered = orderedIds
+      .map((id) => previous.find((m) => m.id === id))
+      .filter((m): m is Movie => !!m)
+
+    setMovies(reordered.map((m) => ({ ...m, rank: rankById.get(m.id) ?? m.rank })))
+
+    const results = await Promise.all(
+      orderedIds.map((id) => supabase.from('movies').update({ rank: rankById.get(id) }).eq('id', id)),
+    )
+    const failed = results.find((r) => r.error)
+    if (failed?.error) {
+      setError((failed.error as { message: string }).message)
+      setMovies(previous)
+      return
+    }
+    setError(null)
+  }
+
   async function resetToSeed() {
     const { error: deleteError } = await supabase
       .from('movies')
@@ -136,9 +212,13 @@ export function useMovies() {
       return
     }
 
-    const { error: insertError } = await supabase
-      .from('movies')
-      .insert(seedMovies.map(({ id: _id, ...draft }) => draftToRow(draft)))
+    const seedRows = await Promise.all(
+      seedMovies.map(async ({ id: _id, ...draft }) => ({
+        ...draftToRow(draft),
+        poster_url: await fetchPosterUrl(draft.title, draft.year),
+      })),
+    )
+    const { error: insertError } = await supabase.from('movies').insert(seedRows)
 
     if (insertError) {
       setError(insertError.message)
@@ -149,5 +229,15 @@ export function useMovies() {
     await refresh()
   }
 
-  return { movies, loading, error, addMovie, updateMovie, deleteMovie, toggleWatched, resetToSeed }
+  return {
+    movies,
+    loading,
+    error,
+    addMovie,
+    updateMovie,
+    deleteMovie,
+    toggleWatched,
+    reorderMovies,
+    resetToSeed,
+  }
 }

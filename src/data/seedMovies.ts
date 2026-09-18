@@ -13,6 +13,7 @@ export const seedMovies: Movie[] = [
     rank: null,
     watched: true,
     notes: 'Annual tradition.',
+    posterUrl: null,
   },
   {
     id: 'seed-2',
@@ -25,6 +26,7 @@ export const seedMovies: Movie[] = [
     rank: null,
     watched: true,
     notes: '',
+    posterUrl: null,
   },
   {
     id: 'seed-3',
@@ -37,5 +39,6 @@ export const seedMovies: Movie[] = [
     rank: null,
     watched: true,
     notes: 'Works for both Halloween and Christmas.',
+    posterUrl: null,
   },
 ]

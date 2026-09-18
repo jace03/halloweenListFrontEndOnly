@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MovieCard } from './MovieCard'
 import type { Movie } from '../types'
@@ -16,9 +16,10 @@ const baseMovie: Movie = {
   watched: true,
   notes: 'Annual tradition.',
   cast: ['Bette Midler', 'Sarah Jessica Parker'],
+  posterUrl: null,
 }
 
-function renderCard(overrides: Partial<Movie> = {}) {
+function renderCard(overrides: Partial<Movie> = {}, cardProps: Record<string, unknown> = {}) {
   const onEdit = vi.fn()
   const onDelete = vi.fn()
   const onToggleWatched = vi.fn()
@@ -28,6 +29,7 @@ function renderCard(overrides: Partial<Movie> = {}) {
       onEdit={onEdit}
       onDelete={onDelete}
       onToggleWatched={onToggleWatched}
+      {...cardProps}
     />,
   )
   return { onEdit, onDelete, onToggleWatched, unmount }
@@ -46,12 +48,12 @@ describe('MovieCard', () => {
 
   it('shows a rank badge only when the movie has a rank', () => {
     renderCard({ rank: 1 })
-    expect(screen.getByText('#1 fave')).toBeInTheDocument()
+    expect(screen.getByText('#1')).toBeInTheDocument()
   })
 
   it('hides the rank badge when rank is null', () => {
     renderCard({ rank: null })
-    expect(screen.queryByText(/fave/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^#\d+$/)).not.toBeInTheDocument()
   })
 
   it('renders the addedBy badge text', () => {
@@ -128,5 +130,75 @@ describe('MovieCard', () => {
     const { onDelete } = renderCard({ id: 'del-1' })
     await userEvent.click(screen.getByText('Delete'))
     expect(onDelete).toHaveBeenCalledWith('del-1')
+  })
+
+  it('is not draggable by default', () => {
+    renderCard({ id: 'a' })
+    expect(screen.getByRole('listitem')).toHaveAttribute('draggable', 'false')
+  })
+
+  it('is draggable when draggable is true', () => {
+    renderCard({ id: 'a' }, { draggable: true })
+    expect(screen.getByRole('listitem')).toHaveAttribute('draggable', 'true')
+  })
+
+  it('calls onDragStart with the movie id when a drag begins anywhere on the card', () => {
+    const onDragStart = vi.fn()
+    render(
+      <MovieCard
+        movie={{ ...baseMovie, id: 'a' }}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onToggleWatched={vi.fn()}
+        draggable
+        onDragStart={onDragStart}
+      />,
+    )
+    fireEvent.dragStart(screen.getByRole('heading'))
+    expect(onDragStart).toHaveBeenCalledWith('a')
+  })
+
+  it('calls onDragEnter, onDrop, and onDragEnd with the movie id', () => {
+    const onDragEnter = vi.fn()
+    const onDrop = vi.fn()
+    const onDragEnd = vi.fn()
+    render(
+      <MovieCard
+        movie={{ ...baseMovie, id: 'a' }}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onToggleWatched={vi.fn()}
+        draggable
+        onDragEnter={onDragEnter}
+        onDrop={onDrop}
+        onDragEnd={onDragEnd}
+      />,
+    )
+    const item = screen.getByRole('listitem')
+    fireEvent.dragEnter(item)
+    fireEvent.drop(item)
+    fireEvent.dragEnd(item)
+
+    expect(onDragEnter).toHaveBeenCalledWith('a')
+    expect(onDrop).toHaveBeenCalledWith('a')
+    expect(onDragEnd).toHaveBeenCalled()
+  })
+
+  it('applies dragging and drop-target classes', () => {
+    renderCard({ id: 'a' })
+    expect(screen.getByRole('listitem')).not.toHaveClass('dragging')
+    expect(screen.getByRole('listitem')).not.toHaveClass('drop-target')
+  })
+
+  it('renders the poster image when posterUrl is set', () => {
+    renderCard({ posterUrl: 'https://image.tmdb.org/t/p/w500/poster.jpg' })
+    const poster = screen.getByRole('img')
+    expect(poster).toHaveAttribute('src', 'https://image.tmdb.org/t/p/w500/poster.jpg')
+  })
+
+  it('renders a placeholder when posterUrl is null', () => {
+    renderCard({ posterUrl: null })
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(screen.getByText('🎃')).toBeInTheDocument()
   })
 })

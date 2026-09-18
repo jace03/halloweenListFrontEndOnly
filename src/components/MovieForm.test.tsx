@@ -16,6 +16,7 @@ const editingMovie: Movie = {
   watched: true,
   notes: 'Great movie',
   cast: [],
+  posterUrl: null,
 }
 
 describe('MovieForm', () => {
