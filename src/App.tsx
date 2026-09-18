@@ -2,14 +2,14 @@ import { useMemo, useState } from 'react'
 import './App.css'
 import { MovieCard } from './components/MovieCard'
 import { MovieForm } from './components/MovieForm'
-import { seedMovies } from './data/seedMovies'
-import { useLocalStorage } from './hooks/useLocalStorage'
+import { useMovies } from './hooks/useMovies'
 import type { Movie, MovieDraft } from './types'
 
 type Filter = 'all' | 'watched' | 'unwatched'
 
 function App() {
-  const [movies, setMovies] = useLocalStorage<Movie[]>('halloween-movies', seedMovies)
+  const { movies, loading, error, addMovie, updateMovie, deleteMovie, toggleWatched, resetToSeed } =
+    useMovies()
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null)
   const [filter, setFilter] = useState<Filter>('all')
 
@@ -21,27 +21,21 @@ function App() {
 
   function handleSave(draft: MovieDraft, id: string | null) {
     if (id) {
-      setMovies((prev) => prev.map((m) => (m.id === id ? { ...draft, id } : m)))
+      updateMovie(id, draft)
       setEditingMovie(null)
     } else {
-      setMovies((prev) => [...prev, { ...draft, id: crypto.randomUUID() }])
+      addMovie(draft)
     }
   }
 
   function handleDelete(id: string) {
-    setMovies((prev) => prev.filter((m) => m.id !== id))
+    deleteMovie(id)
     if (editingMovie?.id === id) setEditingMovie(null)
-  }
-
-  function handleToggleWatched(id: string) {
-    setMovies((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, watched: !m.watched } : m)),
-    )
   }
 
   function handleResetToDefaults() {
     if (window.confirm('Replace your current list with the starter list? This cannot be undone.')) {
-      setMovies(seedMovies)
+      resetToSeed()
       setEditingMovie(null)
     }
   }
@@ -58,6 +52,8 @@ function App() {
       </header>
 
       <main className="app-main">
+        {error && <p className="empty-state">Something went wrong talking to Supabase: {error}</p>}
+
         <MovieForm
           editingMovie={editingMovie}
           onSave={handleSave}
@@ -83,7 +79,9 @@ function App() {
             </button>
           </div>
 
-          {visibleMovies.length === 0 ? (
+          {loading ? (
+            <p className="empty-state">Loading...</p>
+          ) : visibleMovies.length === 0 ? (
             <p className="empty-state">No movies here yet — add one above!</p>
           ) : (
             <ul className="movie-list">
@@ -93,7 +91,7 @@ function App() {
                   movie={movie}
                   onEdit={setEditingMovie}
                   onDelete={handleDelete}
-                  onToggleWatched={handleToggleWatched}
+                  onToggleWatched={toggleWatched}
                 />
               ))}
             </ul>

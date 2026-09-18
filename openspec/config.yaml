@@ -1,0 +1,41 @@
+schema: spec-driven
+
+context: |
+  Project: "Halloween Watchlist", a CoastNCode project.
+  Currently frontend-only: TypeScript + React (Vite), CRUD over a hardcoded
+  seed list, persisted to browser localStorage.
+  Concept: Jace and his wife track the Halloween movies they want to watch
+  (or have watched) together — title, year, who picked it, a 1-5 rating,
+  watched status, and notes.
+  This is a for-fun project that may grow into something more real later.
+
+# Per-artifact rules (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
