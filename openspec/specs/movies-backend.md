@@ -19,6 +19,7 @@ Table `public.movies`:
 | `watched` | `boolean` | not null, default `false` |
 | `notes` | `text` | not null, default `''` |
 | `created_at` | `timestamptz` | not null, default `now()` |
+| `poster_url` | `text` | nullable, TMDB poster image URL, set by the client on add/edit |
 
 Table `public.actors`:
 
@@ -42,7 +43,8 @@ RLS is enabled on all three tables, each with one permissive policy granting `an
 ## Client wiring
 
 - `src/lib/supabaseClient.ts` — client from `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` (`.env.local`, gitignored; `.env.example` documents the shape).
-- `src/hooks/useMovies.ts` — data-access hook: fetch on mount, `addMovie`, `updateMovie`, `deleteMovie`, `toggleWatched`, `resetToSeed`, plus `loading`/`error` state. Not yet updated to read/write `genre`/`decade`/`rank`/cast (follow-up).
+- `src/hooks/useMovies.ts` — data-access hook: fetch on mount, `addMovie`, `updateMovie`, `deleteMovie`, `toggleWatched`, `reorderMovies`, plus `loading`/`error` state.
+- `src/lib/tmdb.ts` — TMDB poster lookup (`VITE_TMDB_API_KEY`, `.env.local`), called from `useMovies()` on add/edit.
 
 ## Established via
 

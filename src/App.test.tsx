@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 import type { Movie } from './types'
@@ -17,6 +17,7 @@ const movies: Movie[] = [
     watched: true,
     notes: '',
     cast: [],
+    posterUrl: null,
   },
   {
     id: '2',
@@ -30,6 +31,7 @@ const movies: Movie[] = [
     watched: false,
     notes: '',
     cast: [],
+    posterUrl: null,
   },
 ]
 
@@ -37,7 +39,7 @@ const addMovie = vi.fn()
 const updateMovie = vi.fn()
 const deleteMovie = vi.fn()
 const toggleWatched = vi.fn()
-const resetToSeed = vi.fn()
+const reorderMovies = vi.fn()
 const useMoviesMock = vi.fn()
 
 vi.mock('./hooks/useMovies', () => ({
@@ -53,7 +55,7 @@ function setHookState(overrides: Record<string, unknown> = {}) {
     updateMovie,
     deleteMovie,
     toggleWatched,
-    resetToSeed,
+    reorderMovies,
     ...overrides,
   })
 }
@@ -137,17 +139,42 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Add a movie' })).toBeInTheDocument()
   })
 
-  it('resets to the starter list after confirmation', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
+  it('makes cards draggable when the All filter is active', () => {
     render(<App />)
-    await userEvent.click(screen.getByText('Reset to starter list'))
-    expect(resetToSeed).toHaveBeenCalled()
+    const items = screen.getAllByRole('listitem')
+    expect(items[0]).toHaveAttribute('draggable', 'true')
+    expect(items[1]).toHaveAttribute('draggable', 'true')
   })
 
-  it('does not reset when the confirmation is cancelled', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false)
+  it('disables dragging when a Watched/Unwatched filter is active', async () => {
     render(<App />)
-    await userEvent.click(screen.getByText('Reset to starter list'))
-    expect(resetToSeed).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'Unwatched' }))
+    const items = screen.getAllByRole('listitem')
+    expect(items[0]).toHaveAttribute('draggable', 'false')
+  })
+
+  it('reorders on drag-and-drop from anywhere on the card and calls reorderMovies with the new id order', () => {
+    render(<App />)
+    const items = screen.getAllByRole('listitem')
+
+    fireEvent.dragStart(items[0])
+    fireEvent.dragEnter(items[1])
+    fireEvent.drop(items[1])
+    fireEvent.dragEnd(items[1])
+
+    expect(reorderMovies).toHaveBeenCalledWith(['2', '1'])
+  })
+
+  it('clears drag state when the card being dragged is deleted mid-drag', async () => {
+    render(<App />)
+    const items = screen.getAllByRole('listitem')
+
+    fireEvent.dragStart(items[0])
+    expect(items[0]).toHaveClass('dragging')
+
+    const deleteButtons = screen.getAllByText('Delete')
+    await userEvent.click(deleteButtons[0])
+
+    expect(items[0]).not.toHaveClass('dragging')
   })
 })
