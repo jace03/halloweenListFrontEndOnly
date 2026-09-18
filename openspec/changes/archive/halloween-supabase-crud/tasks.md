@@ -27,7 +27,7 @@
 
 - [x] 5.1 Start `npm run dev`, confirm the dev server serves the app (`http://localhost:5173`, verified reachable)
 - [x] 5.2-5.5 Add/update/toggle/delete flows verified by calling the same REST endpoint + anon key the app's `useMovies` hook uses (insert, patch, delete all confirmed round-tripping correctly); table left back at the 3 seed rows afterward
-- [ ] 5.6 Click "Reset to starter list" in an actual browser and confirm the UI updates — not yet done: no browser automation tool was available this session (user opted out of the Chrome extension). Recommend a quick manual pass next time the app is open.
+- [x] 5.6 Click "Reset to starter list" in an actual browser and confirm the UI updates — confirmed by Jace: full CRUD + reset flow all working in the browser
 
 ## 6. Documentation
 
@@ -39,4 +39,4 @@
 ## 7. Wrap-up
 
 - [x] 7.1 Run `npm run build` and `npm run lint`, verify both pass
-- [ ] 7.2 Move this change folder to `openspec/changes/archive/` once everything above is done (holding open pending 5.1–5.6 manual browser walkthrough — no browser tool available this session; CRUD was instead verified directly against the live REST API)
+- [x] 7.2 Move this change folder to `openspec/changes/archive/` once everything above is done
