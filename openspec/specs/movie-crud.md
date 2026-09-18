@@ -1,6 +1,6 @@
 # Capability: movie-crud
 
-Add/edit/delete/toggle-watched/reset flows for the Halloween watchlist, backed by `movies-backend`.
+Add/edit/delete/toggle-watched flows for the Halloween watchlist, backed by `movies-backend`.
 
 ## Behavior
 
@@ -12,8 +12,8 @@ Add/edit/delete/toggle-watched/reset flows for the Halloween watchlist, backed b
 - **Sort**: list is ordered by favorite `rank` ascending — `rank = 1` is the top favorite and appears first, counting up going down the list; unranked movies last — then by when they were added.
 - **Reorder via drag-and-drop**: while the "All" filter is active, cards can be dragged (grab anywhere on the card, desktop mouse only) to a new position; dropping recomputes sequential `rank` values (top card = 1, counting up) for every movie to match the new order and persists them via `useMovies().reorderMovies`, including assigning a rank to a previously-unranked movie dropped into the list. Disabled while the "Unwatched"/"Watched" filter is active.
 - **Un-ranking via edit**: clearing a movie's "Favorite rank" field back to blank in the edit form has the same gap-closing effect as deleting a ranked movie — every movie ranked below it shifts up by one. Editing a rank to a *different* number (not blank) does not auto-shift anything; typing an already-used or out-of-range number can leave a duplicate or gap until the next drag reorder recomputes every rank from scratch.
-- **Display**: each card shows a rank badge (`#N`) at the front of the title row when ranked, genre/decade tags, the 0-10 rating, and a cast line (read-only — actors are linked via `movies-backend`'s `movie_actor` table but not editable from the UI yet).
-- **Reset to starter list**: confirmation prompt, then `useMovies().resetToSeed` deletes all rows and bulk-inserts `src/data/seedMovies.ts` with fresh server-generated IDs.
+- **Display**: each card shows a poster thumbnail (auto-fetched from TMDB, or a 🎃 placeholder if no match), a rank badge (`#N`) at the front of the title row when ranked, genre/decade tags, the 0-10 rating (⭐), and a cast line (read-only — actors are linked via `movies-backend`'s `movie_actor` table but not editable from the UI yet).
+- **Poster fetch**: on add, and on edit when the title or year changes, `useMovies()` calls TMDB's search API (`src/lib/tmdb.ts`, `VITE_TMDB_API_KEY`) for a matching poster and stores its URL on the row; failures/no-match leave `poster_url` null and the card falls back to the placeholder.
 
 ## Established via
 

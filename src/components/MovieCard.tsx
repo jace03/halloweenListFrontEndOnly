@@ -86,7 +86,7 @@ export function MovieCard({
           </div>
         )}
 
-        <div className="rating">{movie.rating > 0 ? `🎃 ${movie.rating}/10` : 'Not rated yet'}</div>
+        <div className="rating">{movie.rating > 0 ? `⭐ ${movie.rating}/10` : 'Not rated yet'}</div>
 
         {!!movie.cast?.length && <p className="cast">Cast: {movie.cast.join(', ')}</p>}
 

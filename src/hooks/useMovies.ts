@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { seedMovies } from '../data/seedMovies'
 import { fetchPosterUrl } from '../lib/tmdb'
 import type { Movie, MovieDraft, MovieRow } from '../types'
 
@@ -201,34 +200,6 @@ export function useMovies() {
     setError(null)
   }
 
-  async function resetToSeed() {
-    const { error: deleteError } = await supabase
-      .from('movies')
-      .delete()
-      .not('id', 'is', null)
-
-    if (deleteError) {
-      setError(deleteError.message)
-      return
-    }
-
-    const seedRows = await Promise.all(
-      seedMovies.map(async ({ id: _id, ...draft }) => ({
-        ...draftToRow(draft),
-        poster_url: await fetchPosterUrl(draft.title, draft.year),
-      })),
-    )
-    const { error: insertError } = await supabase.from('movies').insert(seedRows)
-
-    if (insertError) {
-      setError(insertError.message)
-      return
-    }
-
-    setError(null)
-    await refresh()
-  }
-
   return {
     movies,
     loading,
@@ -238,6 +209,5 @@ export function useMovies() {
     deleteMovie,
     toggleWatched,
     reorderMovies,
-    resetToSeed,
   }
 }

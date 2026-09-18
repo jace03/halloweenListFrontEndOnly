@@ -80,7 +80,7 @@ describe('MovieCard', () => {
 
   it('shows the rating out of 10 when rating is above 0', () => {
     renderCard({ rating: 7 })
-    expect(screen.getByText('🎃 7/10')).toBeInTheDocument()
+    expect(screen.getByText('⭐ 7/10')).toBeInTheDocument()
   })
 
   it('joins cast names with commas', () => {

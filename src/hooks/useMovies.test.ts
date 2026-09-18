@@ -334,42 +334,4 @@ describe('useMovies', () => {
     expect(result.current.movies.map((m) => m.id)).toEqual(['a', 'b'])
     expect(result.current.error).toBe('update failed')
   })
-
-  it('resetToSeed clears the table, inserts the seed data, and refreshes', async () => {
-    supabase.from.mockReturnValueOnce(makeQuery({ data: [row], error: null }))
-    const { result } = renderHook(() => useMovies())
-    await waitFor(() => expect(result.current.loading).toBe(false))
-
-    const deleteQuery = makeQuery({ error: null })
-    const insertQuery = makeQuery({ error: null })
-    const refreshQuery = makeQuery({ data: [], error: null })
-    supabase.from
-      .mockReturnValueOnce(deleteQuery)
-      .mockReturnValueOnce(insertQuery)
-      .mockReturnValueOnce(refreshQuery)
-
-    await act(async () => {
-      await result.current.resetToSeed()
-    })
-
-    expect(deleteQuery.not).toHaveBeenCalledWith('id', 'is', null)
-    expect(insertQuery.insert).toHaveBeenCalled()
-    expect(result.current.movies).toEqual([])
-    expect(result.current.error).toBeNull()
-  })
-
-  it('resetToSeed surfaces a delete error and skips the insert and refresh', async () => {
-    supabase.from.mockReturnValueOnce(makeQuery({ data: [], error: null }))
-    const { result } = renderHook(() => useMovies())
-    await waitFor(() => expect(result.current.loading).toBe(false))
-
-    supabase.from.mockClear()
-    supabase.from.mockReturnValueOnce(makeQuery({ error: { message: 'delete failed' } }))
-    await act(async () => {
-      await result.current.resetToSeed()
-    })
-
-    expect(supabase.from).toHaveBeenCalledTimes(1)
-    expect(result.current.error).toBe('delete failed')
-  })
 })

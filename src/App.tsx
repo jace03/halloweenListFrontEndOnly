@@ -17,7 +17,6 @@ function App() {
     deleteMovie,
     toggleWatched,
     reorderMovies,
-    resetToSeed,
   } = useMovies()
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null)
   const [filter, setFilter] = useState<Filter>('all')
@@ -45,15 +44,6 @@ function App() {
     deleteMovie(id)
     if (editingMovie?.id === id) setEditingMovie(null)
     if (draggedId === id || overId === id) {
-      setDraggedId(null)
-      setOverId(null)
-    }
-  }
-
-  function handleResetToDefaults() {
-    if (window.confirm('Replace your current list with the starter list? This cannot be undone.')) {
-      resetToSeed()
-      setEditingMovie(null)
       setDraggedId(null)
       setOverId(null)
     }
@@ -121,9 +111,6 @@ function App() {
                 </button>
               ))}
             </div>
-            <button type="button" className="btn-link" onClick={handleResetToDefaults}>
-              Reset to starter list
-            </button>
           </div>
 
           {loading ? (

@@ -40,7 +40,6 @@ const updateMovie = vi.fn()
 const deleteMovie = vi.fn()
 const toggleWatched = vi.fn()
 const reorderMovies = vi.fn()
-const resetToSeed = vi.fn()
 const useMoviesMock = vi.fn()
 
 vi.mock('./hooks/useMovies', () => ({
@@ -57,7 +56,6 @@ function setHookState(overrides: Record<string, unknown> = {}) {
     deleteMovie,
     toggleWatched,
     reorderMovies,
-    resetToSeed,
     ...overrides,
   })
 }
@@ -139,20 +137,6 @@ describe('App', () => {
     await userEvent.click(deleteButtons[0])
     expect(deleteMovie).toHaveBeenCalledWith('1')
     expect(screen.getByRole('heading', { name: 'Add a movie' })).toBeInTheDocument()
-  })
-
-  it('resets to the starter list after confirmation', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
-    render(<App />)
-    await userEvent.click(screen.getByText('Reset to starter list'))
-    expect(resetToSeed).toHaveBeenCalled()
-  })
-
-  it('does not reset when the confirmation is cancelled', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false)
-    render(<App />)
-    await userEvent.click(screen.getByText('Reset to starter list'))
-    expect(resetToSeed).not.toHaveBeenCalled()
   })
 
   it('makes cards draggable when the All filter is active', () => {
