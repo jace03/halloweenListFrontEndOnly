@@ -100,6 +100,11 @@ textarea {
   cursor: pointer;
 }
 
+.checkbox-label input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+}
+
 .checkbox-label.small {
   font-size: 13px;
   font-weight: 500;
@@ -115,9 +120,13 @@ textarea {
   font: inherit;
   font-weight: 600;
   padding: 9px 18px;
+  min-height: 40px;
   border-radius: 8px;
   border: none;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-primary {
@@ -170,11 +179,15 @@ textarea {
   font-size: 13px;
   font-weight: 600;
   padding: 6px 12px;
+  min-height: 40px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-muted);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .filter-btn.active {
@@ -301,4 +314,33 @@ textarea {
   text-align: center;
   color: var(--text-muted);
   padding: 24px 0;
+}
+
+/* Mobile */
+
+@media (max-width: 560px) {
+  .app-header h1 {
+    font-size: 26px;
+  }
+
+  .form-row-inline {
+    flex-direction: column;
+  }
+
+  .movie-card-header {
+    flex-wrap: wrap;
+  }
+
+  .badge-group {
+    justify-content: flex-start;
+  }
+
+  .movie-card-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .btn-link {
+    padding: 8px 6px;
+  }
 }
