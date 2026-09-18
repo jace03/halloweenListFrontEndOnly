@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 import type { Movie } from './types'
@@ -62,8 +62,14 @@ function setHookState(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  localStorage.clear()
   setHookState()
 })
+
+function startDragFromHandle(item: HTMLElement) {
+  fireEvent.mouseDown(within(item).getByLabelText('Drag to reorder'))
+  fireEvent.dragStart(item)
+}
 
 describe('App', () => {
   it('shows a loading state', () => {
@@ -153,7 +159,19 @@ describe('App', () => {
     expect(items[0]).toHaveAttribute('draggable', 'false')
   })
 
-  it('reorders on drag-and-drop from anywhere on the card and calls reorderMovies with the new id order', () => {
+  it('reorders on drag-and-drop from the handle and calls reorderMovies with the new id order', () => {
+    render(<App />)
+    const items = screen.getAllByRole('listitem')
+
+    startDragFromHandle(items[0])
+    fireEvent.dragEnter(items[1])
+    fireEvent.drop(items[1])
+    fireEvent.dragEnd(items[1])
+
+    expect(reorderMovies).toHaveBeenCalledWith(['2', '1'])
+  })
+
+  it('does not start a drag from outside the handle', () => {
     render(<App />)
     const items = screen.getAllByRole('listitem')
 
@@ -162,19 +180,42 @@ describe('App', () => {
     fireEvent.drop(items[1])
     fireEvent.dragEnd(items[1])
 
-    expect(reorderMovies).toHaveBeenCalledWith(['2', '1'])
+    expect(reorderMovies).not.toHaveBeenCalled()
   })
 
   it('clears drag state when the card being dragged is deleted mid-drag', async () => {
     render(<App />)
     const items = screen.getAllByRole('listitem')
 
-    fireEvent.dragStart(items[0])
+    startDragFromHandle(items[0])
     expect(items[0]).toHaveClass('dragging')
 
     const deleteButtons = screen.getAllByText('Delete')
     await userEvent.click(deleteButtons[0])
 
     expect(items[0]).not.toHaveClass('dragging')
+  })
+
+  it('defaults to 1 column and persists a column change to localStorage', async () => {
+    render(<App />)
+    expect(screen.getByRole('list')).toHaveAttribute('data-columns', '1')
+
+    await userEvent.click(screen.getByRole('button', { name: '3' }))
+    expect(screen.getByRole('list')).toHaveAttribute('data-columns', '3')
+    expect(localStorage.getItem('movie-list-columns')).toBe('3')
+  })
+
+  it('restores the column count from localStorage', () => {
+    localStorage.setItem('movie-list-columns', '2')
+    render(<App />)
+    expect(screen.getByRole('list')).toHaveAttribute('data-columns', '2')
+  })
+
+  it('disables dragging once more than 1 column is selected, even under the All filter', async () => {
+    render(<App />)
+    await userEvent.click(screen.getByRole('button', { name: '2' }))
+    const items = screen.getAllByRole('listitem')
+    expect(items[0]).toHaveAttribute('draggable', 'false')
+    expect(within(items[0]).queryByLabelText('Drag to reorder')).not.toBeInTheDocument()
   })
 })

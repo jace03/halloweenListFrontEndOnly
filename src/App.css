@@ -196,16 +196,59 @@ textarea {
   color: #fff;
 }
 
+.columns {
+  display: flex;
+  gap: 6px;
+}
+
+.column-btn {
+  min-width: 40px;
+  padding: 6px;
+}
+
 .movie-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
+@media (min-width: 561px) {
+  .movie-list[data-columns='2'] {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .movie-list[data-columns='3'] {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .movie-list[data-columns='4'] {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .movie-list[data-columns='3'] .movie-card,
+  .movie-list[data-columns='4'] .movie-card {
+    flex-direction: column;
+  }
+
+  .movie-list[data-columns='3'] .movie-poster,
+  .movie-list[data-columns='3'] .movie-poster-placeholder,
+  .movie-list[data-columns='4'] .movie-poster,
+  .movie-list[data-columns='4'] .movie-poster-placeholder {
+    align-self: center;
+  }
+
+  .movie-list[data-columns='4'] .movie-poster,
+  .movie-list[data-columns='4'] .movie-poster-placeholder {
+    width: 64px;
+    height: 96px;
+  }
+}
+
 .movie-card {
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -225,18 +268,38 @@ textarea {
   opacity: 0.7;
 }
 
-.movie-card[draggable='true'] {
-  cursor: grab;
-}
-
 .movie-card.dragging {
   opacity: 0.4;
-  cursor: grabbing;
 }
 
 .movie-card.drop-target {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent);
+}
+
+.drag-handle {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  width: 20px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 16px;
+  letter-spacing: -2px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.drag-handle:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.movie-card.dragging .drag-handle {
+  cursor: grabbing;
 }
 
 .movie-poster {
@@ -266,6 +329,7 @@ textarea {
 
 .movie-card-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-start;
   gap: 10px;
@@ -314,7 +378,7 @@ textarea {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .badge-rank {
@@ -355,6 +419,7 @@ textarea {
 
 .movie-card-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   margin-top: 12px;

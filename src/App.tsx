@@ -6,6 +6,14 @@ import { useMovies } from './hooks/useMovies'
 import type { Movie, MovieDraft } from './types'
 
 type Filter = 'all' | 'watched' | 'unwatched'
+type Columns = 1 | 2 | 3 | 4
+
+const COLUMNS_STORAGE_KEY = 'movie-list-columns'
+
+function loadStoredColumns(): Columns {
+  const stored = Number(localStorage.getItem(COLUMNS_STORAGE_KEY))
+  return stored === 2 || stored === 3 || stored === 4 ? stored : 1
+}
 
 function App() {
   const {
@@ -20,10 +28,16 @@ function App() {
   } = useMovies()
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null)
   const [filter, setFilter] = useState<Filter>('all')
+  const [columns, setColumns] = useState<Columns>(loadStoredColumns)
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
 
-  const dragEnabled = filter === 'all'
+  const dragEnabled = filter === 'all' && columns === 1
+
+  function handleColumnsChange(next: Columns) {
+    setColumns(next)
+    localStorage.setItem(COLUMNS_STORAGE_KEY, String(next))
+  }
 
   const visibleMovies = useMemo(() => {
     if (filter === 'watched') return movies.filter((m) => m.watched)
@@ -111,6 +125,19 @@ function App() {
                 </button>
               ))}
             </div>
+            <div className="columns" role="group" aria-label="Columns">
+              {([1, 2, 3, 4] as Columns[]).map((count) => (
+                <button
+                  key={count}
+                  type="button"
+                  className={`filter-btn column-btn ${columns === count ? 'active' : ''}`}
+                  aria-pressed={columns === count}
+                  onClick={() => handleColumnsChange(count)}
+                >
+                  {count}
+                </button>
+              ))}
+            </div>
           </div>
 
           {loading ? (
@@ -118,7 +145,7 @@ function App() {
           ) : visibleMovies.length === 0 ? (
             <p className="empty-state">No movies here yet — add one above!</p>
           ) : (
-            <ul className="movie-list">
+            <ul className="movie-list" data-columns={columns}>
               {visibleMovies.map((movie) => (
                 <MovieCard
                   key={movie.id}

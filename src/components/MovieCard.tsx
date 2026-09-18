@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import type { Movie } from '../types'
 
 interface MovieCardProps {
@@ -27,16 +28,27 @@ export function MovieCard({
   onDrop,
   onDragEnd,
 }: MovieCardProps) {
+  const handlePressed = useRef(false)
+
   const dragHandlers = draggable
     ? {
-        onDragStart: () => onDragStart?.(movie.id),
+        onDragStart: (event: React.DragEvent<HTMLLIElement>) => {
+          if (!handlePressed.current) {
+            event.preventDefault()
+            return
+          }
+          onDragStart?.(movie.id)
+        },
         onDragEnter: () => onDragEnter?.(movie.id),
         onDragOver: (event: React.DragEvent<HTMLLIElement>) => event.preventDefault(),
         onDrop: (event: React.DragEvent<HTMLLIElement>) => {
           event.preventDefault()
           onDrop?.(movie.id)
         },
-        onDragEnd: () => onDragEnd?.(),
+        onDragEnd: () => {
+          handlePressed.current = false
+          onDragEnd?.()
+        },
       }
     : {}
 
@@ -53,6 +65,21 @@ export function MovieCard({
       draggable={draggable}
       {...dragHandlers}
     >
+      {draggable && (
+        <span
+          className="drag-handle"
+          aria-label="Drag to reorder"
+          onMouseDown={() => {
+            handlePressed.current = true
+          }}
+          onMouseUp={() => {
+            handlePressed.current = false
+          }}
+        >
+          ⋮⋮
+        </span>
+      )}
+
       {movie.posterUrl ? (
         <img
           className="movie-poster"
