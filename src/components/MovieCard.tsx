@@ -14,10 +14,22 @@ export function MovieCard({ movie, onEdit, onDelete, onToggleWatched }: MovieCar
         <h3>
           {movie.title} {movie.year !== '' && <span className="year">({movie.year})</span>}
         </h3>
-        <span className={`badge badge-${movie.addedBy.toLowerCase()}`}>{movie.addedBy}</span>
+        <div className="badge-group">
+          {movie.rank !== null && <span className="badge badge-rank">#{movie.rank} fave</span>}
+          <span className={`badge badge-${movie.addedBy.toLowerCase()}`}>{movie.addedBy}</span>
+        </div>
       </div>
 
-      <div className="rating">{'🎃'.repeat(movie.rating)}</div>
+      {(movie.genre || movie.decade) && (
+        <div className="tags">
+          {movie.genre && <span className="tag">{movie.genre}</span>}
+          {movie.decade && <span className="tag">{movie.decade}</span>}
+        </div>
+      )}
+
+      <div className="rating">{movie.rating > 0 ? `🎃 ${movie.rating}/10` : 'Not rated yet'}</div>
+
+      {!!movie.cast?.length && <p className="cast">Cast: {movie.cast.join(', ')}</p>}
 
       {movie.notes && <p className="notes">{movie.notes}</p>}
 

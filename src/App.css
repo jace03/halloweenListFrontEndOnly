@@ -242,9 +242,42 @@ textarea {
   background: var(--purple);
 }
 
+.badge-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.badge-rank {
+  background: var(--text-muted);
+}
+
+.tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tag {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
 .rating {
   margin: 8px 0 4px;
   font-size: 15px;
+}
+
+.cast {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
 }
 
 .notes {

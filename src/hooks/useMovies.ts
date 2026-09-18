@@ -10,8 +10,15 @@ function rowToMovie(row: MovieRow): Movie {
     year: row.year ?? '',
     addedBy: row.added_by,
     rating: row.rating,
+    genre: row.genre ?? '',
+    decade: row.decade ?? '',
+    rank: row.rank,
     watched: row.watched,
     notes: row.notes,
+    cast: (row.movie_actor ?? [])
+      .map((link) => link.actors?.name)
+      .filter((name): name is string => !!name)
+      .sort(),
   }
 }
 
@@ -21,10 +28,15 @@ function draftToRow(draft: MovieDraft) {
     year: draft.year === '' ? null : draft.year,
     added_by: draft.addedBy,
     rating: draft.rating,
+    genre: draft.genre.trim() === '' ? null : draft.genre.trim(),
+    decade: draft.decade.trim() === '' ? null : draft.decade.trim(),
+    rank: draft.rank,
     watched: draft.watched,
     notes: draft.notes,
   }
 }
+
+const MOVIE_SELECT = '*, movie_actor(actors(name))'
 
 export function useMovies() {
   const [movies, setMovies] = useState<Movie[]>([])
@@ -35,7 +47,8 @@ export function useMovies() {
     setLoading(true)
     const { data, error: fetchError } = await supabase
       .from('movies')
-      .select('*')
+      .select(MOVIE_SELECT)
+      .order('rank', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: true })
 
     if (fetchError) {
@@ -55,7 +68,7 @@ export function useMovies() {
     const { data, error: insertError } = await supabase
       .from('movies')
       .insert(draftToRow(draft))
-      .select()
+      .select(MOVIE_SELECT)
       .single()
 
     if (insertError) {
@@ -71,7 +84,7 @@ export function useMovies() {
       .from('movies')
       .update(draftToRow(draft))
       .eq('id', id)
-      .select()
+      .select(MOVIE_SELECT)
       .single()
 
     if (updateError) {
@@ -101,7 +114,7 @@ export function useMovies() {
       .from('movies')
       .update({ watched: !movie.watched })
       .eq('id', id)
-      .select()
+      .select(MOVIE_SELECT)
       .single()
 
     if (updateError) {

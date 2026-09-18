@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react'
 import type { Movie, MovieDraft } from '../types'
 
+const GENRE_SUGGESTIONS = ['Comedy', 'Horror', 'Fantasy', 'Thriller', 'Mystery', 'Rom-Com', 'Animation']
+const DECADE_SUGGESTIONS = ['1970s', '1980s', '1990s', '2000s', '2010s', '2020s']
+
 const emptyDraft: MovieDraft = {
   title: '',
   year: '',
   addedBy: 'Both',
   rating: 5,
+  genre: '',
+  decade: '',
+  rank: null,
   watched: false,
   notes: '',
 }
@@ -79,18 +85,64 @@ export function MovieForm({ editingMovie, onSave, onCancel }: MovieFormProps) {
         </div>
 
         <div>
-          <label htmlFor="rating">Rating</label>
-          <select
+          <label htmlFor="rating">Rating ({draft.rating > 0 ? `${draft.rating}/10` : 'unrated'})</label>
+          <input
             id="rating"
+            type="range"
+            min={0}
+            max={10}
             value={draft.rating}
             onChange={(e) => setDraft({ ...draft, rating: Number(e.target.value) })}
-          >
-            {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n}>
-                {'🎃'.repeat(n)}
-              </option>
+          />
+        </div>
+      </div>
+
+      <div className="form-row form-row-inline">
+        <div>
+          <label htmlFor="genre">Genre</label>
+          <input
+            id="genre"
+            type="text"
+            list="genre-suggestions"
+            value={draft.genre}
+            onChange={(e) => setDraft({ ...draft, genre: e.target.value })}
+            placeholder="e.g. Horror"
+          />
+          <datalist id="genre-suggestions">
+            {GENRE_SUGGESTIONS.map((g) => (
+              <option key={g} value={g} />
             ))}
-          </select>
+          </datalist>
+        </div>
+
+        <div>
+          <label htmlFor="decade">Decade</label>
+          <input
+            id="decade"
+            type="text"
+            list="decade-suggestions"
+            value={draft.decade}
+            onChange={(e) => setDraft({ ...draft, decade: e.target.value })}
+            placeholder="e.g. 1990s"
+          />
+          <datalist id="decade-suggestions">
+            {DECADE_SUGGESTIONS.map((d) => (
+              <option key={d} value={d} />
+            ))}
+          </datalist>
+        </div>
+
+        <div>
+          <label htmlFor="rank">Favorite rank</label>
+          <input
+            id="rank"
+            type="number"
+            value={draft.rank ?? ''}
+            onChange={(e) =>
+              setDraft({ ...draft, rank: e.target.value === '' ? null : Number(e.target.value) })
+            }
+            placeholder="unranked"
+          />
         </div>
       </div>
 
