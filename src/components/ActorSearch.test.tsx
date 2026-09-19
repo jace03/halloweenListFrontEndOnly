@@ -33,4 +33,25 @@ describe('ActorSearch', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Hocus Pocus/ }))
     expect(onPick).toHaveBeenCalledWith(movie)
   })
+
+  it('shows 30 movies at a time and reveals more with Show more', async () => {
+    searchActors.mockResolvedValue([{ id: 7, name: 'Bette Midler', photoUrl: null, knownFor: '' }])
+    fetchActorMovies.mockResolvedValue(
+      Array.from({ length: 65 }, (_, i) => ({ ...movie, id: i, title: `Movie ${i}` })),
+    )
+    render(<ActorSearch onPick={vi.fn()} />)
+
+    await userEvent.type(screen.getByLabelText('Actor'), 'bet')
+    await userEvent.click(await screen.findByRole('button', { name: /Bette Midler/ }))
+
+    const list = await screen.findByRole('list', { name: 'Actor movies' })
+    expect(list.querySelectorAll('li')).toHaveLength(30)
+
+    await userEvent.click(screen.getByRole('button', { name: /Show more (35 remaining)/ }))
+    expect(list.querySelectorAll('li')).toHaveLength(60)
+
+    await userEvent.click(screen.getByRole('button', { name: /Show more (5 remaining)/ }))
+    expect(list.querySelectorAll('li')).toHaveLength(65)
+    expect(screen.queryByRole('button', { name: /Show more/ })).not.toBeInTheDocument()
+  })
 })

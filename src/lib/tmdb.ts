@@ -135,7 +135,6 @@ export async function fetchActorMovies(personId: number, signal?: AbortSignal): 
     const data = (await response.json()) as { cast?: (TmdbSuggestionResult & { popularity?: number })[] }
     return (data.cast ?? [])
       .sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))
-      .slice(0, 30)
       .map(toSuggestion)
   } catch {
     return []

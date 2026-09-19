@@ -6,6 +6,8 @@ import {
   type MovieSuggestion,
 } from '../lib/tmdb'
 
+const PAGE_SIZE = 30
+
 interface ActorSearchProps {
   onPick: (movie: MovieSuggestion) => void
 }
@@ -17,6 +19,7 @@ export function ActorSearch({ onPick }: ActorSearchProps) {
   const [selectedActor, setSelectedActor] = useState<ActorSuggestion | null>(null)
   const [movies, setMovies] = useState<MovieSuggestion[]>([])
   const [loadingMovies, setLoadingMovies] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   // Only search while the user is actively typing (not after picking an actor).
   useEffect(() => {
@@ -38,6 +41,7 @@ export function ActorSearch({ onPick }: ActorSearchProps) {
     setActors([])
     setShowActors(false)
     setMovies([])
+    setVisibleCount(PAGE_SIZE)
     setLoadingMovies(true)
     const results = await fetchActorMovies(actor.id)
     setMovies(results)
@@ -100,7 +104,7 @@ export function ActorSearch({ onPick }: ActorSearchProps) {
             <p className="empty-state">No movies found.</p>
           ) : (
             <ul className="suggestions suggestions-inline" aria-label="Actor movies">
-              {movies.map((m) => (
+              {movies.slice(0, visibleCount).map((m) => (
                 <li key={m.id}>
                   <button type="button" onClick={() => onPick(m)}>
                     {m.posterUrl ? (
@@ -116,6 +120,15 @@ export function ActorSearch({ onPick }: ActorSearchProps) {
                 </li>
               ))}
             </ul>
+          )}
+          {movies.length > visibleCount && (
+            <button
+              type="button"
+              className="btn-secondary show-more"
+              onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            >
+              Show more ({movies.length - visibleCount} remaining)
+            </button>
           )}
         </div>
       )}

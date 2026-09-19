@@ -112,17 +112,25 @@ textarea:focus {
   color: #fff;
 }
 
+.actor-movies {
+  display: flex;
+  flex-direction: column;
+}
+
 .actor-movies h3 {
   margin: 0 0 8px;
   font-size: 16px;
 }
 
 .suggestions.suggestions-inline {
-  max-height: 480px;
-  overflow-y: auto;
   position: static;
   box-shadow: none;
   margin: 0;
+}
+
+.show-more {
+  align-self: center;
+  margin-top: 12px;
 }
 
 .title-suggest {
