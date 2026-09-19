@@ -31,6 +31,7 @@ const GENRE_NAMES: Record<number, string> = {
   10402: 'Music',
   37: 'Western',
   10752: 'War',
+  10770: 'TV Movie',
   99: 'Documentary',
 }
 
@@ -39,6 +40,7 @@ export interface MovieSuggestion {
   title: string
   year: number | ''
   genre: string
+  genres: string[]
   decade: string
   posterUrl: string | null
 }
@@ -66,6 +68,7 @@ function toSuggestion(r: TmdbSuggestionResult): MovieSuggestion {
     title: r.title,
     year: Number.isFinite(year) ? year : '',
     genre: pickGenre(r.genre_ids),
+    genres: (r.genre_ids ?? []).map((id) => GENRE_NAMES[id]).filter((g): g is string => !!g),
     decade: Number.isFinite(year) ? `${Math.floor(year / 10) * 10}s` : '',
     posterUrl: r.poster_path ? `${IMAGE_BASE}${r.poster_path}` : null,
   }

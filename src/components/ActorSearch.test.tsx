@@ -15,6 +15,7 @@ const movie = {
   title: 'Hocus Pocus',
   year: 1993,
   genre: 'Fantasy',
+  genres: ['Fantasy', 'Comedy'],
   decade: '1990s',
   posterUrl: null,
 }
@@ -79,5 +80,31 @@ describe('ActorSearch', () => {
     await userEvent.clear(filter)
     await userEvent.type(filter, 'zzz')
     expect(screen.getByText(/No movies match/)).toBeInTheDocument()
+  })
+
+  it('also filters by genre and decade', async () => {
+    searchActors.mockResolvedValue([{ id: 7, name: 'Bette Midler', photoUrl: null, knownFor: '' }])
+    fetchActorMovies.mockResolvedValue([
+      { ...movie, id: 1, title: 'Hocus Pocus', genres: ['Fantasy', 'Comedy'], decade: '1990s' },
+      { ...movie, id: 2, title: 'Beaches', genres: ['Drama'], decade: '1980s' },
+    ])
+    render(<ActorSearch onPick={vi.fn()} />)
+
+    await userEvent.type(screen.getByLabelText('Actor'), 'bet')
+    await userEvent.click(await screen.findByRole('button', { name: /Bette Midler/ }))
+    const filter = await screen.findByLabelText('Filter movies')
+
+    await userEvent.type(filter, 'drama')
+    expect(screen.getByRole('button', { name: /Beaches/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Hocus Pocus/ })).not.toBeInTheDocument()
+
+    await userEvent.clear(filter)
+    await userEvent.type(filter, 'comedy')
+    expect(screen.getByRole('button', { name: /Hocus Pocus/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Beaches/ })).not.toBeInTheDocument()
+
+    await userEvent.clear(filter)
+    await userEvent.type(filter, '1980s')
+    expect(screen.getByRole('button', { name: /Beaches/ })).toBeInTheDocument()
   })
 })

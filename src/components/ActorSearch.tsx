@@ -24,7 +24,9 @@ export function ActorSearch({ onPick }: ActorSearchProps) {
 
   const filterText = movieFilter.trim().toLowerCase()
   const filteredMovies = filterText
-    ? movies.filter((m) => `${m.title} ${m.year}`.toLowerCase().includes(filterText))
+    ? movies.filter((m) =>
+        [m.title, m.year, m.decade, ...m.genres].join(' ').toLowerCase().includes(filterText),
+      )
     : movies
 
   // Only search while the user is actively typing (not after picking an actor).
@@ -120,7 +122,7 @@ export function ActorSearch({ onPick }: ActorSearchProps) {
                   setMovieFilter(e.target.value)
                   setVisibleCount(PAGE_SIZE)
                 }}
-                placeholder={`Filter ${movies.length} movies by title or year...`}
+                placeholder={`Filter ${movies.length} movies by title, year, genre...`}
                 autoComplete="off"
               />
               {filteredMovies.length === 0 ? (
