@@ -57,8 +57,8 @@ describe('MovieCard', () => {
   })
 
   it('renders the addedBy badge text', () => {
-    renderCard({ addedBy: 'Wife' })
-    expect(screen.getByText('Wife')).toBeInTheDocument()
+    renderCard({ addedBy: 'Hers' })
+    expect(screen.getByText('Hers')).toBeInTheDocument()
   })
 
   it('renders genre and decade tags when present', () => {
