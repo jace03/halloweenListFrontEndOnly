@@ -118,6 +118,8 @@ textarea:focus {
 }
 
 .suggestions-inline {
+  max-height: 480px;
+  overflow-y: auto;
   position: static;
   box-shadow: none;
   margin: 0;
