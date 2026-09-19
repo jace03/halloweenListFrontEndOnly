@@ -47,10 +47,10 @@ describe('ActorSearch', () => {
     const list = await screen.findByRole('list', { name: 'Actor movies' })
     expect(list.querySelectorAll('li')).toHaveLength(30)
 
-    await userEvent.click(screen.getByRole('button', { name: /Show more (35 remaining)/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Show more (35 remaining)' }))
     expect(list.querySelectorAll('li')).toHaveLength(60)
 
-    await userEvent.click(screen.getByRole('button', { name: /Show more (5 remaining)/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Show more (5 remaining)' }))
     expect(list.querySelectorAll('li')).toHaveLength(65)
     expect(screen.queryByRole('button', { name: /Show more/ })).not.toBeInTheDocument()
   })
