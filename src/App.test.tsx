@@ -23,7 +23,7 @@ const movies: Movie[] = [
     id: '2',
     title: 'Halloween',
     year: 1978,
-    addedBy: 'Me',
+    addedBy: 'His',
     rating: 4,
     genre: 'Horror',
     decade: '1970s',

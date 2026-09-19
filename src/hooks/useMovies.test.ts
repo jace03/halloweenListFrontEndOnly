@@ -121,7 +121,7 @@ describe('useMovies', () => {
       await result.current.addMovie({
         title: 'Bad Movie',
         year: '',
-        addedBy: 'Me',
+        addedBy: 'His',
         rating: 0,
         genre: '',
         decade: '',

@@ -8,7 +8,7 @@ const editingMovie: Movie = {
   id: '1',
   title: 'Beetlejuice',
   year: 1988,
-  addedBy: 'Wife',
+  addedBy: 'Hers',
   rating: 4,
   genre: 'Fantasy',
   decade: '1980s',

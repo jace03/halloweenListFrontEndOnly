@@ -11,7 +11,7 @@ Table `public.movies`:
 | `id` | `uuid` | primary key, `default gen_random_uuid()` |
 | `title` | `text` | not null |
 | `year` | `integer` | nullable |
-| `added_by` | `text` | not null, `check in ('Me', 'Wife', 'Both')` |
+| `added_by` | `text` | not null, `check in ('His', 'Hers', 'Both')` |
 | `rating` | `integer` | not null, `check between 0 and 10` — a 0-10 score assigned by Jace/his wife, distinct from `rank` |
 | `genre` | `text` | nullable |
 | `decade` | `text` | nullable, free-form (e.g. `'1990s'`) |

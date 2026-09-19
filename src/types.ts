@@ -2,7 +2,7 @@ export interface Movie {
   id: string
   title: string
   year: number | ''
-  addedBy: 'Me' | 'Wife' | 'Both'
+  addedBy: 'His' | 'Hers' | 'Both'
   rating: number
   genre: string
   decade: string
