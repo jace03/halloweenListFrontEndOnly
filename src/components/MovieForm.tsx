@@ -20,21 +20,35 @@ const emptyDraft: MovieDraft = {
 
 interface MovieFormProps {
   editingMovie: Movie | null
+  prefill?: MovieSuggestion | null
   onSave: (draft: MovieDraft, id: string | null) => void
   onCancel: () => void
 }
 
-export function MovieForm({ editingMovie, onSave, onCancel }: MovieFormProps) {
+export function MovieForm({ editingMovie, prefill = null, onSave, onCancel }: MovieFormProps) {
   const [draft, setDraft] = useState<MovieDraft>(emptyDraft)
 
   const [suggestions, setSuggestions] = useState<MovieSuggestion[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
 
   useEffect(() => {
-    setDraft(editingMovie ? { ...editingMovie, posterUrl: editingMovie.posterUrl ?? '' } : emptyDraft)
+    if (editingMovie) {
+      setDraft({ ...editingMovie, posterUrl: editingMovie.posterUrl ?? '' })
+    } else if (prefill) {
+      setDraft({
+        ...emptyDraft,
+        title: prefill.title,
+        year: prefill.year,
+        genre: prefill.genre,
+        decade: prefill.decade,
+        posterUrl: prefill.posterUrl ?? '',
+      })
+    } else {
+      setDraft(emptyDraft)
+    }
     setSuggestions([])
     setShowSuggestions(false)
-  }, [editingMovie])
+  }, [editingMovie, prefill])
 
   // Only search while the user is actively typing a title (not after picking a suggestion).
   useEffect(() => {
