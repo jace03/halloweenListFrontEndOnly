@@ -82,7 +82,7 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 2px solid var(--orange);
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -130,12 +130,12 @@ textarea {
 }
 
 .btn-primary {
-  background: var(--orange);
+  background: var(--accent);
   color: #fff;
 }
 
 .btn-primary:hover {
-  background: var(--orange-dark);
+  background: var(--accent-dark);
 }
 
 .btn-secondary {
@@ -149,7 +149,7 @@ textarea {
   border: none;
   font: inherit;
   font-weight: 600;
-  color: var(--purple);
+  color: var(--accent-secondary);
   cursor: pointer;
   padding: 4px;
 }
@@ -191,8 +191,8 @@ textarea {
 }
 
 .filter-btn.active {
-  background: var(--orange);
-  border-color: var(--orange);
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
 }
 
@@ -208,13 +208,60 @@ textarea {
 .movie-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 14px;
+  padding: 14px;
   box-shadow: var(--shadow);
+  display: flex;
+  gap: 14px;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.movie-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
 }
 
 .movie-card.watched {
   opacity: 0.7;
+}
+
+.movie-card[draggable='true'] {
+  cursor: grab;
+}
+
+.movie-card.dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+}
+
+.movie-card.drop-target {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.movie-poster {
+  flex: none;
+  width: 84px;
+  height: 126px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.movie-poster-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  background: linear-gradient(160deg, var(--accent-secondary), var(--accent));
+}
+
+.movie-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .movie-card-header {
@@ -222,6 +269,13 @@ textarea {
   justify-content: space-between;
   align-items: flex-start;
   gap: 10px;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .movie-card-header h3 {
@@ -243,16 +297,16 @@ textarea {
   color: #fff;
 }
 
-.badge-me {
+.badge-his {
   background: #4a7fd1;
 }
 
-.badge-wife {
+.badge-hers {
   background: #d1418a;
 }
 
 .badge-both {
-  background: var(--purple);
+  background: var(--accent-secondary);
 }
 
 .badge-group {
@@ -325,6 +379,19 @@ textarea {
 
   .form-row-inline {
     flex-direction: column;
+  }
+
+  .movie-card {
+    gap: 10px;
+  }
+
+  .movie-poster {
+    width: 64px;
+    height: 96px;
+  }
+
+  .movie-poster-placeholder {
+    font-size: 22px;
   }
 
   .movie-card-header {

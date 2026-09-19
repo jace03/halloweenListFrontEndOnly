@@ -2,7 +2,7 @@ export interface Movie {
   id: string
   title: string
   year: number | ''
-  addedBy: 'Me' | 'Wife' | 'Both'
+  addedBy: 'His' | 'Hers' | 'Both'
   rating: number
   genre: string
   decade: string
@@ -10,9 +10,10 @@ export interface Movie {
   watched: boolean
   notes: string
   cast?: string[]
+  posterUrl: string | null
 }
 
-export type MovieDraft = Omit<Movie, 'id' | 'cast'>
+export type MovieDraft = Omit<Movie, 'id' | 'cast' | 'posterUrl'>
 
 export interface MovieRow {
   id: string
@@ -26,5 +27,6 @@ export interface MovieRow {
   watched: boolean
   notes: string
   created_at: string
+  poster_url: string | null
   movie_actor?: { actors: { name: string } | null }[]
 }

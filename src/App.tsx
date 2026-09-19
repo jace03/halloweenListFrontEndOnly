@@ -8,10 +8,22 @@ import type { Movie, MovieDraft } from './types'
 type Filter = 'all' | 'watched' | 'unwatched'
 
 function App() {
-  const { movies, loading, error, addMovie, updateMovie, deleteMovie, toggleWatched, resetToSeed } =
-    useMovies()
+  const {
+    movies,
+    loading,
+    error,
+    addMovie,
+    updateMovie,
+    deleteMovie,
+    toggleWatched,
+    reorderMovies,
+  } = useMovies()
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null)
   const [filter, setFilter] = useState<Filter>('all')
+  const [draggedId, setDraggedId] = useState<string | null>(null)
+  const [overId, setOverId] = useState<string | null>(null)
+
+  const dragEnabled = filter === 'all'
 
   const visibleMovies = useMemo(() => {
     if (filter === 'watched') return movies.filter((m) => m.watched)
@@ -31,13 +43,38 @@ function App() {
   function handleDelete(id: string) {
     deleteMovie(id)
     if (editingMovie?.id === id) setEditingMovie(null)
+    if (draggedId === id || overId === id) {
+      setDraggedId(null)
+      setOverId(null)
+    }
   }
 
-  function handleResetToDefaults() {
-    if (window.confirm('Replace your current list with the starter list? This cannot be undone.')) {
-      resetToSeed()
-      setEditingMovie(null)
+  function handleDragStart(id: string) {
+    setDraggedId(id)
+  }
+
+  function handleDragEnter(id: string) {
+    if (id !== draggedId) setOverId(id)
+  }
+
+  function handleDragEnd() {
+    setDraggedId(null)
+    setOverId(null)
+  }
+
+  function handleDrop(targetId: string) {
+    if (draggedId && draggedId !== targetId) {
+      const ids = movies.map((m) => m.id)
+      const fromIndex = ids.indexOf(draggedId)
+      const toIndex = ids.indexOf(targetId)
+      if (fromIndex !== -1 && toIndex !== -1) {
+        const reorderedIds = [...ids]
+        reorderedIds.splice(fromIndex, 1)
+        reorderedIds.splice(toIndex, 0, draggedId)
+        reorderMovies(reorderedIds)
+      }
     }
+    handleDragEnd()
   }
 
   const watchedCount = movies.filter((m) => m.watched).length
@@ -74,9 +111,6 @@ function App() {
                 </button>
               ))}
             </div>
-            <button type="button" className="btn-link" onClick={handleResetToDefaults}>
-              Reset to starter list
-            </button>
           </div>
 
           {loading ? (
@@ -92,6 +126,13 @@ function App() {
                   onEdit={setEditingMovie}
                   onDelete={handleDelete}
                   onToggleWatched={toggleWatched}
+                  draggable={dragEnabled}
+                  isDragging={draggedId === movie.id}
+                  isDropTarget={dragEnabled && overId === movie.id && draggedId !== movie.id}
+                  onDragStart={handleDragStart}
+                  onDragEnter={handleDragEnter}
+                  onDrop={handleDrop}
+                  onDragEnd={handleDragEnd}
                 />
               ))}
             </ul>

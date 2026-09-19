@@ -79,8 +79,8 @@ export function MovieForm({ editingMovie, onSave, onCancel }: MovieFormProps) {
             }
           >
             <option value="Both">Both</option>
-            <option value="Me">Me</option>
-            <option value="Wife">Wife</option>
+            <option value="His">His</option>
+            <option value="Hers">Hers</option>
           </select>
         </div>
 
