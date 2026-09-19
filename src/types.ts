@@ -13,7 +13,9 @@ export interface Movie {
   posterUrl: string | null
 }
 
-export type MovieDraft = Omit<Movie, 'id' | 'cast' | 'posterUrl'>
+export type MovieDraft = Omit<Movie, 'id' | 'cast' | 'posterUrl'> & {
+  posterUrl?: string
+}
 
 export interface MovieRow {
   id: string

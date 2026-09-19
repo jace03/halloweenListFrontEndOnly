@@ -97,7 +97,7 @@ export function useMovies() {
   }
 
   async function addMovie(draft: MovieDraft) {
-    const posterUrl = await fetchPosterUrl(draft.title, draft.year)
+    const posterUrl = draft.posterUrl?.trim() || (await fetchPosterUrl(draft.title, draft.year))
     const { data, error: insertError } = await supabase
       .from('movies')
       .insert({ ...draftToRow(draft), poster_url: posterUrl })
@@ -115,7 +115,11 @@ export function useMovies() {
   async function updateMovie(id: string, draft: MovieDraft) {
     const previous = movies.find((m) => m.id === id)
     const titleChanged = previous?.title !== draft.title || previous?.year !== draft.year
-    const posterUrl = titleChanged ? await fetchPosterUrl(draft.title, draft.year) : previous?.posterUrl
+    const manualPoster = draft.posterUrl?.trim()
+    const posterCleared = draft.posterUrl === ''
+    const posterUrl =
+      manualPoster ||
+      (titleChanged || posterCleared ? await fetchPosterUrl(draft.title, draft.year) : previous?.posterUrl)
     const { data, error: updateError } = await supabase
       .from('movies')
       .update({ ...draftToRow(draft), poster_url: posterUrl })

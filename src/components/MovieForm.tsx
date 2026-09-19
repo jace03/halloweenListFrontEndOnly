@@ -14,6 +14,7 @@ const emptyDraft: MovieDraft = {
   rank: null,
   watched: false,
   notes: '',
+  posterUrl: '',
 }
 
 interface MovieFormProps {
@@ -26,7 +27,7 @@ export function MovieForm({ editingMovie, onSave, onCancel }: MovieFormProps) {
   const [draft, setDraft] = useState<MovieDraft>(emptyDraft)
 
   useEffect(() => {
-    setDraft(editingMovie ? { ...editingMovie } : emptyDraft)
+    setDraft(editingMovie ? { ...editingMovie, posterUrl: editingMovie.posterUrl ?? '' } : emptyDraft)
   }, [editingMovie])
 
   function handleSubmit(e: React.FormEvent) {
@@ -144,6 +145,17 @@ export function MovieForm({ editingMovie, onSave, onCancel }: MovieFormProps) {
             placeholder="unranked"
           />
         </div>
+      </div>
+
+      <div className="form-row">
+        <label htmlFor="posterUrl">Poster image URL</label>
+        <input
+          id="posterUrl"
+          type="url"
+          value={draft.posterUrl ?? ''}
+          onChange={(e) => setDraft({ ...draft, posterUrl: e.target.value })}
+          placeholder="Optional — leave blank to look one up automatically"
+        />
       </div>
 
       <div className="form-row">
