@@ -71,6 +71,7 @@ label {
 
 input[type='text'],
 input[type='number'],
+input[type='url'],
 select,
 textarea {
   font: inherit;
@@ -86,6 +87,61 @@ select:focus,
 textarea:focus {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+.title-suggest {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: 4px 0 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.suggestions button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggestions button:hover,
+.suggestions button:focus-visible {
+  background: var(--border);
+}
+
+.suggestions img,
+.suggestion-noposter {
+  flex: none;
+  width: 30px;
+  height: 45px;
+  border-radius: 3px;
+  object-fit: cover;
+  background: var(--border);
+}
+
+.suggestion-year {
+  color: var(--text-muted);
 }
 
 textarea {

@@ -82,3 +82,26 @@ describe('MovieForm', () => {
     expect(screen.getByLabelText('Title')).toHaveValue('')
   })
 })
+
+describe('MovieForm title suggestions', () => {
+  it('shows suggestions while typing and fills fields when one is picked', async () => {
+    vi.resetModules()
+    vi.doMock('../lib/tmdb', () => ({
+      searchMovieSuggestions: vi.fn().mockResolvedValue([
+        { id: 1, title: 'Hocus Pocus', year: 1993, genre: 'Fantasy', decade: '1990s', posterUrl: 'http://img/p.jpg' },
+      ]),
+    }))
+    const { MovieForm: Form } = await import('./MovieForm')
+    render(<Form editingMovie={null} onSave={vi.fn()} onCancel={vi.fn()} />)
+
+    await userEvent.type(screen.getByLabelText('Title'), 'hoc')
+    await userEvent.click(await screen.findByRole('button', { name: /Hocus Pocus/ }))
+
+    expect(screen.getByLabelText('Title')).toHaveValue('Hocus Pocus')
+    expect(screen.getByLabelText('Year')).toHaveValue(1993)
+    expect(screen.getByLabelText('Genre')).toHaveValue('Fantasy')
+    expect(screen.getByLabelText('Decade')).toHaveValue('1990s')
+    expect(screen.getByLabelText('Poster image URL')).toHaveValue('http://img/p.jpg')
+    vi.doUnmock('../lib/tmdb')
+  })
+})

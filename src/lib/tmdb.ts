@@ -10,6 +10,78 @@ interface TmdbSearchResponse {
   results: TmdbSearchResult[]
 }
 
+// TMDB genre id -> name, mapped onto the form's suggestion list where one fits.
+const GENRE_NAMES: Record<number, string> = {
+  27: 'Horror',
+  35: 'Comedy',
+  14: 'Fantasy',
+  53: 'Thriller',
+  9648: 'Mystery',
+  16: 'Animation',
+  10749: 'Romance',
+  12: 'Adventure',
+  28: 'Action',
+  18: 'Drama',
+  878: 'Sci-Fi',
+  10751: 'Family',
+  80: 'Crime',
+  36: 'History',
+  10402: 'Music',
+  37: 'Western',
+  10752: 'War',
+  99: 'Documentary',
+}
+
+export interface MovieSuggestion {
+  id: number
+  title: string
+  year: number | ''
+  genre: string
+  decade: string
+  posterUrl: string | null
+}
+
+interface TmdbSuggestionResult {
+  id: number
+  title: string
+  release_date?: string
+  genre_ids?: number[]
+  poster_path: string | null
+}
+
+function pickGenre(ids: number[] = []): string {
+  const isRomCom = ids.includes(35) && ids.includes(10749)
+  if (isRomCom) return 'Rom-Com'
+  // Otherwise use the first genre TMDB lists that we have a name for.
+  for (const id of ids) if (GENRE_NAMES[id]) return GENRE_NAMES[id]
+  return ''
+}
+
+export async function searchMovieSuggestions(query: string, signal?: AbortSignal): Promise<MovieSuggestion[]> {
+  if (!API_KEY || query.trim().length < 2) return []
+
+  try {
+    const params = new URLSearchParams({ api_key: API_KEY, query: query.trim() })
+    const response = await fetch(`${SEARCH_URL}?${params.toString()}`, { signal })
+    if (!response.ok) return []
+
+    const data = (await response.json()) as { results?: TmdbSuggestionResult[] }
+    return (data.results ?? []).slice(0, 6).map((r) => {
+      const year = r.release_date ? Number(r.release_date.slice(0, 4)) : NaN
+      return {
+        id: r.id,
+        title: r.title,
+        year: Number.isFinite(year) ? year : '',
+        genre: pickGenre(r.genre_ids),
+        decade: Number.isFinite(year) ? `${Math.floor(year / 10) * 10}s` : '',
+        posterUrl: r.poster_path ? `${IMAGE_BASE}${r.poster_path}` : null,
+      }
+    })
+  } catch {
+    return []
+  }
+}
+
 export async function fetchPosterUrl(title: string, year: number | ''): Promise<string | null> {
   if (!API_KEY || !title.trim()) return null
 
