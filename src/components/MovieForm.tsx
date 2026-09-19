@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { searchMovieSuggestions, type MovieSuggestion } from '../lib/tmdb'
 import type { Movie, MovieDraft } from '../types'
 
 const GENRE_SUGGESTIONS = ['Comedy', 'Horror', 'Fantasy', 'Thriller', 'Mystery', 'Rom-Com', 'Animation']
@@ -14,6 +15,7 @@ const emptyDraft: MovieDraft = {
   rank: null,
   watched: false,
   notes: '',
+  posterUrl: '',
 }
 
 interface MovieFormProps {
@@ -25,9 +27,41 @@ interface MovieFormProps {
 export function MovieForm({ editingMovie, onSave, onCancel }: MovieFormProps) {
   const [draft, setDraft] = useState<MovieDraft>(emptyDraft)
 
+  const [suggestions, setSuggestions] = useState<MovieSuggestion[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+
   useEffect(() => {
-    setDraft(editingMovie ? { ...editingMovie } : emptyDraft)
+    setDraft(editingMovie ? { ...editingMovie, posterUrl: editingMovie.posterUrl ?? '' } : emptyDraft)
+    setSuggestions([])
+    setShowSuggestions(false)
   }, [editingMovie])
+
+  // Only search while the user is actively typing a title (not after picking a suggestion).
+  useEffect(() => {
+    if (!showSuggestions) return
+    const controller = new AbortController()
+    const timer = setTimeout(async () => {
+      const results = await searchMovieSuggestions(draft.title, controller.signal)
+      if (!controller.signal.aborted) setSuggestions(results)
+    }, 300)
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [draft.title, showSuggestions])
+
+  function applySuggestion(s: MovieSuggestion) {
+    setDraft((d) => ({
+      ...d,
+      title: s.title,
+      year: s.year,
+      genre: s.genre || d.genre,
+      decade: s.decade || d.decade,
+      posterUrl: s.posterUrl ?? d.posterUrl,
+    }))
+    setSuggestions([])
+    setShowSuggestions(false)
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -42,14 +76,44 @@ export function MovieForm({ editingMovie, onSave, onCancel }: MovieFormProps) {
 
       <div className="form-row">
         <label htmlFor="title">Title</label>
-        <input
-          id="title"
-          type="text"
-          value={draft.title}
-          onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-          placeholder="e.g. Hocus Pocus"
-          required
-        />
+        <div className="title-suggest">
+          <input
+            id="title"
+            type="text"
+            value={draft.title}
+            onChange={(e) => {
+              setDraft({ ...draft, title: e.target.value })
+              setShowSuggestions(true)
+            }}
+            onBlur={() => setShowSuggestions(false)}
+            placeholder="e.g. Hocus Pocus"
+            autoComplete="off"
+            required
+          />
+          {showSuggestions && suggestions.length > 0 && (
+            <ul className="suggestions" role="listbox" aria-label="Movie suggestions">
+              {suggestions.map((s) => (
+                <li key={s.id} role="option" aria-selected={false}>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => applySuggestion(s)}
+                  >
+                    {s.posterUrl ? (
+                      <img src={s.posterUrl} alt="" width={30} height={45} />
+                    ) : (
+                      <span className="suggestion-noposter" />
+                    )}
+                    <span>
+                      {s.title}
+                      {s.year !== '' && <span className="suggestion-year"> ({s.year})</span>}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       <div className="form-row form-row-inline">
@@ -144,6 +208,17 @@ export function MovieForm({ editingMovie, onSave, onCancel }: MovieFormProps) {
             placeholder="unranked"
           />
         </div>
+      </div>
+
+      <div className="form-row">
+        <label htmlFor="posterUrl">Poster image URL</label>
+        <input
+          id="posterUrl"
+          type="url"
+          value={draft.posterUrl ?? ''}
+          onChange={(e) => setDraft({ ...draft, posterUrl: e.target.value })}
+          placeholder="Optional — leave blank to look one up automatically"
+        />
       </div>
 
       <div className="form-row">
