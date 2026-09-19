@@ -54,4 +54,30 @@ describe('ActorSearch', () => {
     expect(list.querySelectorAll('li')).toHaveLength(65)
     expect(screen.queryByRole('button', { name: /Show more/ })).not.toBeInTheDocument()
   })
+
+  it('filters the movie list by title or year', async () => {
+    searchActors.mockResolvedValue([{ id: 7, name: 'Bette Midler', photoUrl: null, knownFor: '' }])
+    fetchActorMovies.mockResolvedValue([
+      { ...movie, id: 1, title: 'Hocus Pocus', year: 1993 },
+      { ...movie, id: 2, title: 'Beaches', year: 1988 },
+    ])
+    render(<ActorSearch onPick={vi.fn()} />)
+
+    await userEvent.type(screen.getByLabelText('Actor'), 'bet')
+    await userEvent.click(await screen.findByRole('button', { name: /Bette Midler/ }))
+    const filter = await screen.findByLabelText('Filter movies')
+
+    await userEvent.type(filter, 'beach')
+    const list = screen.getByRole('list', { name: 'Actor movies' })
+    expect(list.querySelectorAll('li')).toHaveLength(1)
+
+    await userEvent.clear(filter)
+    await userEvent.type(filter, '1993')
+    expect(screen.getByRole('button', { name: /Hocus Pocus/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Beaches/ })).not.toBeInTheDocument()
+
+    await userEvent.clear(filter)
+    await userEvent.type(filter, 'zzz')
+    expect(screen.getByText(/No movies match/)).toBeInTheDocument()
+  })
 })

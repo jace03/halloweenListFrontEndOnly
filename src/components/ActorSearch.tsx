@@ -20,6 +20,12 @@ export function ActorSearch({ onPick }: ActorSearchProps) {
   const [movies, setMovies] = useState<MovieSuggestion[]>([])
   const [loadingMovies, setLoadingMovies] = useState(false)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [movieFilter, setMovieFilter] = useState('')
+
+  const filterText = movieFilter.trim().toLowerCase()
+  const filteredMovies = filterText
+    ? movies.filter((m) => `${m.title} ${m.year}`.toLowerCase().includes(filterText))
+    : movies
 
   // Only search while the user is actively typing (not after picking an actor).
   useEffect(() => {
@@ -41,6 +47,7 @@ export function ActorSearch({ onPick }: ActorSearchProps) {
     setActors([])
     setShowActors(false)
     setMovies([])
+    setMovieFilter('')
     setVisibleCount(PAGE_SIZE)
     setLoadingMovies(true)
     const results = await fetchActorMovies(actor.id)
@@ -103,31 +110,49 @@ export function ActorSearch({ onPick }: ActorSearchProps) {
           ) : movies.length === 0 ? (
             <p className="empty-state">No movies found.</p>
           ) : (
-            <ul className="suggestions suggestions-inline" aria-label="Actor movies">
-              {movies.slice(0, visibleCount).map((m) => (
-                <li key={m.id}>
-                  <button type="button" onClick={() => onPick(m)}>
-                    {m.posterUrl ? (
-                      <img src={m.posterUrl} alt="" width={30} height={45} />
-                    ) : (
-                      <span className="suggestion-noposter" />
-                    )}
-                    <span>
-                      {m.title}
-                      {m.year !== '' && <span className="suggestion-year"> ({m.year})</span>}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <>
+              <input
+                type="text"
+                className="movie-filter"
+                aria-label="Filter movies"
+                value={movieFilter}
+                onChange={(e) => {
+                  setMovieFilter(e.target.value)
+                  setVisibleCount(PAGE_SIZE)
+                }}
+                placeholder={`Filter ${movies.length} movies by title or year...`}
+                autoComplete="off"
+              />
+              {filteredMovies.length === 0 ? (
+                <p className="empty-state">No movies match "{movieFilter.trim()}".</p>
+              ) : (
+                <ul className="suggestions suggestions-inline" aria-label="Actor movies">
+                  {filteredMovies.slice(0, visibleCount).map((m) => (
+                    <li key={m.id}>
+                      <button type="button" onClick={() => onPick(m)}>
+                        {m.posterUrl ? (
+                          <img src={m.posterUrl} alt="" width={30} height={45} />
+                        ) : (
+                          <span className="suggestion-noposter" />
+                        )}
+                        <span>
+                          {m.title}
+                          {m.year !== '' && <span className="suggestion-year"> ({m.year})</span>}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
           )}
-          {movies.length > visibleCount && (
+          {filteredMovies.length > visibleCount && (
             <button
               type="button"
               className="btn-secondary show-more"
               onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
             >
-              Show more ({movies.length - visibleCount} remaining)
+              Show more ({filteredMovies.length - visibleCount} remaining)
             </button>
           )}
         </div>

@@ -575,3 +575,7 @@ textarea {
     padding: 8px 6px;
   }
 }
+
+.movie-filter {
+  margin-bottom: 10px;
+}
