@@ -1,5 +1,7 @@
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY
 const SEARCH_URL = 'https://api.themoviedb.org/3/search/movie'
+const PERSON_SEARCH_URL = 'https://api.themoviedb.org/3/search/person'
+const PERSON_URL = 'https://api.themoviedb.org/3/person'
 const IMAGE_BASE = 'https://image.tmdb.org/t/p/w500'
 
 interface TmdbSearchResult {
@@ -29,6 +31,7 @@ const GENRE_NAMES: Record<number, string> = {
   10402: 'Music',
   37: 'Western',
   10752: 'War',
+  10770: 'TV Movie',
   99: 'Documentary',
 }
 
@@ -37,6 +40,7 @@ export interface MovieSuggestion {
   title: string
   year: number | ''
   genre: string
+  genres: string[]
   decade: string
   posterUrl: string | null
 }
@@ -57,6 +61,19 @@ function pickGenre(ids: number[] = []): string {
   return ''
 }
 
+function toSuggestion(r: TmdbSuggestionResult): MovieSuggestion {
+  const year = r.release_date ? Number(r.release_date.slice(0, 4)) : NaN
+  return {
+    id: r.id,
+    title: r.title,
+    year: Number.isFinite(year) ? year : '',
+    genre: pickGenre(r.genre_ids),
+    genres: (r.genre_ids ?? []).map((id) => GENRE_NAMES[id]).filter((g): g is string => !!g),
+    decade: Number.isFinite(year) ? `${Math.floor(year / 10) * 10}s` : '',
+    posterUrl: r.poster_path ? `${IMAGE_BASE}${r.poster_path}` : null,
+  }
+}
+
 export async function searchMovieSuggestions(query: string, signal?: AbortSignal): Promise<MovieSuggestion[]> {
   if (!API_KEY || query.trim().length < 2) return []
 
@@ -66,17 +83,63 @@ export async function searchMovieSuggestions(query: string, signal?: AbortSignal
     if (!response.ok) return []
 
     const data = (await response.json()) as { results?: TmdbSuggestionResult[] }
-    return (data.results ?? []).slice(0, 6).map((r) => {
-      const year = r.release_date ? Number(r.release_date.slice(0, 4)) : NaN
-      return {
-        id: r.id,
-        title: r.title,
-        year: Number.isFinite(year) ? year : '',
-        genre: pickGenre(r.genre_ids),
-        decade: Number.isFinite(year) ? `${Math.floor(year / 10) * 10}s` : '',
-        posterUrl: r.poster_path ? `${IMAGE_BASE}${r.poster_path}` : null,
-      }
-    })
+    return (data.results ?? []).slice(0, 6).map(toSuggestion)
+  } catch {
+    return []
+  }
+}
+
+export interface ActorSuggestion {
+  id: number
+  name: string
+  photoUrl: string | null
+  knownFor: string
+}
+
+interface TmdbPersonResult {
+  id: number
+  name: string
+  profile_path: string | null
+  known_for?: { title?: string; name?: string }[]
+}
+
+export async function searchActors(query: string, signal?: AbortSignal): Promise<ActorSuggestion[]> {
+  if (!API_KEY || query.trim().length < 2) return []
+
+  try {
+    const params = new URLSearchParams({ api_key: API_KEY, query: query.trim() })
+    const response = await fetch(`${PERSON_SEARCH_URL}?${params.toString()}`, { signal })
+    if (!response.ok) return []
+
+    const data = (await response.json()) as { results?: TmdbPersonResult[] }
+    return (data.results ?? []).slice(0, 6).map((p) => ({
+      id: p.id,
+      name: p.name,
+      photoUrl: p.profile_path ? `${IMAGE_BASE}${p.profile_path}` : null,
+      knownFor: (p.known_for ?? [])
+        .map((k) => k.title ?? k.name)
+        .filter((t): t is string => !!t)
+        .slice(0, 3)
+        .join(', '),
+    }))
+  } catch {
+    return []
+  }
+}
+
+export async function fetchActorMovies(personId: number, signal?: AbortSignal): Promise<MovieSuggestion[]> {
+  if (!API_KEY) return []
+
+  try {
+    const params = new URLSearchParams({ api_key: API_KEY })
+    const response = await fetch(`${PERSON_URL}/${personId}/movie_credits?${params.toString()}`, { signal })
+    if (!response.ok) return []
+
+    const data = (await response.json()) as { cast?: TmdbSuggestionResult[] }
+    // Newest first; movies with no release date go last.
+    return (data.cast ?? [])
+      .map(toSuggestion)
+      .sort((a, b) => (b.year === '' ? -1 : b.year) - (a.year === '' ? -1 : a.year))
   } catch {
     return []
   }

@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react'
 import './App.css'
+import { ActorSearch } from './components/ActorSearch'
 import { MovieCard } from './components/MovieCard'
 import { MovieForm } from './components/MovieForm'
 import { useMovies } from './hooks/useMovies'
+import type { MovieSuggestion } from './lib/tmdb'
 import type { Movie, MovieDraft } from './types'
 
 type Filter = 'all' | 'watched' | 'unwatched'
 type Columns = 1 | 2 | 3 | 4
+type Tab = 'add' | 'actor'
 
 const COLUMNS_STORAGE_KEY = 'movie-list-columns'
 
@@ -27,6 +30,8 @@ function App() {
     reorderMovies,
   } = useMovies()
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null)
+  const [tab, setTab] = useState<Tab>('add')
+  const [prefill, setPrefill] = useState<MovieSuggestion | null>(null)
   const [filter, setFilter] = useState<Filter>('all')
   const [columns, setColumns] = useState<Columns>(loadStoredColumns)
   const [draggedId, setDraggedId] = useState<string | null>(null)
@@ -52,6 +57,17 @@ function App() {
     } else {
       addMovie(draft)
     }
+  }
+
+  function handleActorPick(movie: MovieSuggestion) {
+    setEditingMovie(null)
+    setPrefill(movie)
+    setTab('add')
+  }
+
+  function handleEdit(movie: Movie) {
+    setEditingMovie(movie)
+    setTab('add')
   }
 
   function handleDelete(id: string) {
@@ -105,11 +121,38 @@ function App() {
       <main className="app-main">
         {error && <p className="empty-state">Something went wrong talking to Supabase: {error}</p>}
 
-        <MovieForm
-          editingMovie={editingMovie}
-          onSave={handleSave}
-          onCancel={() => setEditingMovie(null)}
-        />
+        <div className="tabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'add'}
+            className={`tab-btn ${tab === 'add' ? 'active' : ''}`}
+            onClick={() => setTab('add')}
+          >
+            Add a movie
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'actor'}
+            className={`tab-btn ${tab === 'actor' ? 'active' : ''}`}
+            onClick={() => setTab('actor')}
+          >
+            Search by actor
+          </button>
+        </div>
+
+        <div hidden={tab !== 'add'}>
+          <MovieForm
+            editingMovie={editingMovie}
+            prefill={prefill}
+            onSave={handleSave}
+            onCancel={() => setEditingMovie(null)}
+          />
+        </div>
+        <div hidden={tab !== 'actor'}>
+          <ActorSearch onPick={handleActorPick} />
+        </div>
 
         <section className="list-section">
           <div className="list-toolbar">
@@ -150,7 +193,7 @@ function App() {
                 <MovieCard
                   key={movie.id}
                   movie={movie}
-                  onEdit={setEditingMovie}
+                  onEdit={handleEdit}
                   onDelete={handleDelete}
                   onToggleWatched={toggleWatched}
                   draggable={dragEnabled}
