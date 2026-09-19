@@ -135,10 +135,11 @@ export async function fetchActorMovies(personId: number, signal?: AbortSignal): 
     const response = await fetch(`${PERSON_URL}/${personId}/movie_credits?${params.toString()}`, { signal })
     if (!response.ok) return []
 
-    const data = (await response.json()) as { cast?: (TmdbSuggestionResult & { popularity?: number })[] }
+    const data = (await response.json()) as { cast?: TmdbSuggestionResult[] }
+    // Newest first; movies with no release date go last.
     return (data.cast ?? [])
-      .sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))
       .map(toSuggestion)
+      .sort((a, b) => (b.year === '' ? -1 : b.year) - (a.year === '' ? -1 : a.year))
   } catch {
     return []
   }
