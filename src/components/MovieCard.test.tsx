@@ -142,7 +142,7 @@ describe('MovieCard', () => {
     expect(screen.getByRole('listitem')).toHaveAttribute('draggable', 'true')
   })
 
-  it('calls onDragStart with the movie id when a drag begins anywhere on the card', () => {
+  it('does not start a drag when it begins outside the handle', () => {
     const onDragStart = vi.fn()
     render(
       <MovieCard
@@ -155,7 +155,29 @@ describe('MovieCard', () => {
       />,
     )
     fireEvent.dragStart(screen.getByRole('heading'))
+    expect(onDragStart).not.toHaveBeenCalled()
+  })
+
+  it('calls onDragStart with the movie id when a drag begins from the handle', () => {
+    const onDragStart = vi.fn()
+    render(
+      <MovieCard
+        movie={{ ...baseMovie, id: 'a' }}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onToggleWatched={vi.fn()}
+        draggable
+        onDragStart={onDragStart}
+      />,
+    )
+    fireEvent.mouseDown(screen.getByLabelText('Drag to reorder'))
+    fireEvent.dragStart(screen.getByRole('listitem'))
     expect(onDragStart).toHaveBeenCalledWith('a')
+  })
+
+  it('does not render a drag handle when draggable is false', () => {
+    renderCard({ id: 'a' })
+    expect(screen.queryByLabelText('Drag to reorder')).not.toBeInTheDocument()
   })
 
   it('calls onDragEnter, onDrop, and onDragEnd with the movie id', () => {
