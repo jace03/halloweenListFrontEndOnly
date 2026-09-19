@@ -117,7 +117,7 @@ textarea:focus {
   font-size: 16px;
 }
 
-.suggestions-inline {
+.suggestions.suggestions-inline {
   max-height: 480px;
   overflow-y: auto;
   position: static;
